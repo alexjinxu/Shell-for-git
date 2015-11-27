@@ -1,0 +1,505 @@
+#!/bin/bash 
+
+################################
+# Date:   2012/Nov/23
+# Author: cnh59412(XU Jin)
+# Site:   BJ
+# History: Create the file
+################################
+
+
+
+######################################################
+# Set the global paths and varients
+######################################################
+
+GERRITSERVER_LUD="//gerrit.ld.sw.ericsson.se:29418" 
+
+
+
+
+#########################
+# Display the gitcmd help
+##########################
+
+display_help ()
+{
+    echo "   Usage: gitcmd [wa] -h"
+    echo ""
+    echo "       server : display the server url"
+    echo "       repoinstall : install repo"
+    echo "       repotag [tagname] [group1name(ns_l23),gourp2name(ns_ephy),....,.....] :"
+    echo "       repohead   : repo a specific head(green background text) comes from http://gerrit.ld.sw.ericsson.se/gerrit/gitweb?p=manifests%2Fm74x0.git;a=shortlog;h=refs%2Fheads%2Fiso%2FL23_Latest"
+    echo "       reposha    : repo a commit ID (SHA1) "
+	echo "       clotl3|cltrrc : git clone the TDSCDMA RRC from the Gerrit Server"	
+    echo "       clomte : git clone the mte test case from gerrit server "
+    echo "       clotl3|cltrrc : git clone the TDSCDMA RRC from the Gerrit Server"
+    echo "       clowl3|clwrrc : git clone the WCDMA RRC from the Gerrit Server"   
+    echo "       clotl2 : git clone the TDSCDMA L2 from the Gerrit Server"
+    echo "       clomob : git clone the Mobiltiy(cnh1607529_ns_eas_mobility) from the Gerrit Server"
+    echo "       closiif : git clone the SI MGR IF(cnh1608749_ns_eas_si_mgr_if) from the Gerrit Server"
+    echo "       closysinfo : git clone the SYSINFO( cnh1608670_ns_eas_sysinfo) from the Gerrit Server"
+    echo "       revtl3 : put the code TDSCDMA RRC to Gerrit server for review"
+    echo "       revtl2 : put the code TDSCDMA L2 to Gerrit server for review"
+    echo "       revmob : put the code Mobiltiy(cnh1607529_ns_eas_mobility) to Gerrit server for review"
+    echo "       revsiif : put the code SI MGR IF(cnh1608749_ns_eas_si_mgr_if) to Gerrit server for review"
+    echo "       revsysinfo : put the code SYSINFO( cnh1608670_ns_eas_sysinfo) to Gerrit server for review"
+    echo "       puhtl3|puhtrrc [branch name][-r]: git push the TDSCDMA RRC to the Gerrit Server"
+    echo "       puhtl2     [branch name][-r] :git push the TDSCDMA L2 to the Gerrit Server"
+	echo "       puhmte     [branch name][-r] :git push the MTE Test case to the Gerrit Server"
+    echo "       puhmob     [branch name][-r] :git push the Mobiltiy(cnh1607529_ns_eas_mobility) to the Gerrit Server"
+    echo "       puhsiif    [branch name][-r] :git push the SI MGR IF(cnh1608749_ns_eas_si_mgr_if) to the Gerrit Server"
+    echo "       puhsysinfo [branch name][-r] :git push the SYSINFO( cnh1608670_ns_eas_sysinfo) to the Gerrit Server"
+    echo "       -h : print this help"
+    echo ""
+
+}
+
+##################################
+# git clone/pull/push fucntions
+##################################
+
+##########################################################################################################
+#                                          Clone funcitons                                               #
+##########################################################################################################
+
+
+################################
+#
+# TAS functions
+#
+#################################
+show_server()
+{
+  echo $GERRITSERVER_LUD
+}
+auto_repo_sync()
+{
+  retry_times=0
+  $?=1
+  while [ $? -ne 0 ] ; 
+  do 
+    AUTO_REPO_SYNC="repo sync"
+    echo $AUTO_REPO_SYNC " retry times:$retry_times"
+    let "retry_times=$retry_times+1"
+    eval $AUTO_REPO_SYNC
+  done
+}
+execute_repo_tag()
+{
+  local M74X0VERSION=$1
+  echo "version is:" $M74X0VERSION
+  REPO_INIT="repo init -u ssh://gerrit.ld.sw.ericsson.se:29418/manifests/m74x0 -b refs/tags/$M74X0VERSION"
+  echo $REPO_INIT
+  eval $REPO_INIT
+
+  auto_repo_sync
+}
+
+execute_repo_tag_group()
+{
+  local M74X0VERSION=$1
+  local GroupName=$2
+  echo "version is:" $M74X0VERSION
+  echo "group is:" $GroupName
+  REPO_INIT="repo init -u ssh://gerrit.ld.sw.ericsson.se:29418/manifests/m74x0 -b refs/tags/$M74X0VERSION -g \"$GroupName\" "
+  echo $REPO_INIT
+  eval $REPO_INIT
+
+  auto_repo_sync
+}
+
+execute_repo_SHA1()
+{
+  local M74X0VERSION=$1
+  echo "version is:" $M74X0VERSION
+  REPO_INIT="repo init -u ssh://gerrit.ld.sw.ericsson.se:29418/manifests/m74x0 -b $M74X0VERSION"
+  echo $REPO_INIT
+  eval $REPO_INIT
+
+  auto_repo_sync
+}
+
+execute_repo_SHA1_group()
+{
+  local M74X0VERSION=$1
+  local GroupName=$2
+  echo "version is:" $M74X0VERSION
+  echo "group is:" $GroupName
+  REPO_INIT="repo init -u ssh://gerrit.ld.sw.ericsson.se:29418/manifests/m74x0 -b $M74X0VERSION -g \"$GroupName\" "
+  echo $REPO_INIT
+  eval $REPO_INIT
+
+  auto_repo_sync
+}
+
+
+execute_repo_head()
+{
+  local M74X0VERSION=$1
+  echo "version is:" $M74X0VERSION
+  REPO_INIT="repo init -u ssh://gerrit.ld.sw.ericsson.se:29418/manifests/m74x0 -b refs/heads/$M74X0VERSION"
+  echo $REPO_INIT
+  eval $REPO_INIT
+
+  auto_repo_sync
+}
+
+execute_repo_head_group()
+{
+  local M74X0VERSION=$1
+  local GroupName=$2
+  echo "version is:" $M74X0VERSION
+  echo "group is:" $GroupName
+  REPO_INIT="repo init -u ssh://gerrit.ld.sw.ericsson.se:29418/manifests/m74x0 -b refs/heads/$M74X0VERSION -g \"$GroupName\" "
+  echo $REPO_INIT
+  eval $REPO_INIT
+
+  auto_repo_sync
+}
+
+git_clone_tas_rrc ()
+{
+  #  git clone ssh://gerrit.ld.sw.ericsson.se:29418/modem/l1/tdscdma/evp/cnh1608361_ephy_tdscdma_pss_evp 
+    git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/rrc/tdscdma_rrc  cnh1608538_ns_eas_tdscdma_rrc -b ste-dev-br1
+	git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/rrc/lte_rrc  cnh1607530_ns_eas_lte_rrc -b ste-dev-br1
+	git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/l2/lte_l2  cnh1607533_ns_eas_lte_l2 -b ste-dev-br1
+}
+git_clone_mtetestcase ()
+{
+  #  git clone ssh://gerrit.ld.sw.ericsson.se:29418/modem/l1/tdscdma/evp/cnh1608361_ephy_tdscdma_pss_evp 
+    git clone ssh:$GERRITSERVER_LUD/validation/module/ns/l23/mte/l23_mte_test coh9011050-5_ns_l23_mte_tcs_com
+}
+git_clone_tas_l2 ()
+{
+    git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/l2/tdscdma_l2   cnh1608539_ns_eas_tdscdma_l2 -b ste-dev-br1
+}
+
+
+git_clone_was_rrc ()
+{
+  #  git clone ssh://gerrit.ld.sw.ericsson.se:29418/modem/l1/tdscdma/evp/cnh1608361_ephy_tdscdma_pss_evp 
+    git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/rrc/wcdma_rrc   cnh1607531_ns_eas_wcdma_rrc
+}
+
+
+#######################
+#
+# MAS functions
+#
+######################
+
+
+
+git_clone_mobility()
+{
+git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/mobility/mobility  cnh1607529_ns_eas_mobility
+}                               
+
+git_clone_eas_si_mgr_if()
+{
+git clone ssh:$GERRITSERVER_LUD/modem/ns/eas/eas_utilities/si_mgr_if	cnh1608749_ns_eas_si_mgr_if
+}
+
+git_clone_eas_sysinfo()
+{
+git clone ssh:$GERRITSERVER_LUD/modem/l23/common/mas/sysinfo	cnh1608670_ns_eas_sysinfo
+}
+
+##############################################################################
+#                           Push  Funcitons                                  #
+##############################################################################
+
+###############################
+#
+#  TAS funcitons
+#
+##############################
+
+git_push_tas_rrc ()
+{
+    git push ssh:$GERRITSERVER_LUD/modem/ns/eas/rrc/tdscdma_rrc HEAD:$1
+}
+git_push_tas_rrc_review ()
+{
+    git push  ssh:$GERRITSERVER_LUD/modem/ns/eas/rrc/tdscdma_rrc HEAD:refs/for/$1
+}
+git_push_mte_testcase ()
+{
+    git push ssh:$GERRITSERVER_LUD/validation/module/ns/l23/mte/l23_mte_test HEAD:$1
+}
+git_push_mte_testcase_review ()
+{
+    git push ssh:$GERRITSERVER_LUD/validation/module/ns/l23/mte/l23_mte_test HEAD:refs/for/$1
+}
+
+
+git_push_tas_l2 ()
+{
+    git push ssh:$GERRITSERVER_LUD/modem/ns/eas/l2/tdscdma_l2 HEAD:$1
+}
+git_push_tas_l2_review ()
+{
+
+    git push ssh:$GERRITSERVER_LUD/modem/ns/eas/l2/tdscdma_l2 HEAD:refs/for/$1
+}
+
+git_review_tas_l3()
+{
+ git push  ssh:$GERRITSERVER_LUD/modem/ns/eas/rrc/tdscdma_rrc HEAD:refs/for/$1
+
+}
+
+###############################################
+#
+# Mobility funcitons
+#
+###############################################
+git_push_mobility()
+{
+git push ssh:$GERRITSERVER_LUD/modem/ns/eas/mobility/mobility  HEAD:$1
+}
+
+git_push_mobility_review()
+{
+git push ssh:$GERRITSERVER_LUD/modem/ns/eas/mobility/mobility  HEAD:refs/for/$1
+}
+
+
+git_push_eas_si_mgr_if()
+{
+git push ssh:$GERRITSERVER_LUD/modem/ns/eas/eas_utilities/si_mgr_if	 HEAD:$1
+}
+
+git_push_eas_si_mgr_if_review()
+{
+git push ssh:$GERRITSERVER_LUD/modem/ns/eas/eas_utilities/si_mgr_if	 HEAD:refs/for/$1
+}
+
+git_push_eas_sysinfo()
+{
+git push ssh:$GERRITSERVER_LUD/modem/l23/common/mas/sysinfo	 HEAD:$1
+}
+
+git_push_eas_sysinfo_review()
+{
+git push ssh:$GERRITSERVER_LUD/modem/l23/common/mas/sysinfo	 HEAD:refs/for/$1
+}
+
+
+###########################
+# Parse the command line
+###########################
+
+while [ $# -gt 0 ];
+do
+    case "$1" in
+	-h) display_help
+	    exit ;;
+	server) show_server
+	  exit ;;
+	repotag) 
+      if [ -z "$2" ];then
+        echo "##################### "
+        echo "#ERROR: Tage is EMPTY    "
+	    echo "##################### "
+	    echo "------------------------------------------------------"
+        display_help
+        exit
+      else
+	    if [ -z "$3" ];then
+	      execute_repo_tag $2
+	    else
+          execute_repo_tag_group $2 $3
+	    fi
+      fi	
+	  exit ;;
+	repohead) 
+	  if [ -z "$2" ];then
+	    echo "##################### "
+        echo "# ERROR: the Head is EMPTY"
+	    echo "##################### "
+	    echo "------------------------------------------------------"
+        display_help
+        exit
+      else
+        if [ -z "$3" ];then 
+		  execute_repo_head $2
+		else
+		  execute_repo_head_group $2 $3
+		fi  
+      fi
+	  exit ;;
+	reposha) 
+      if [ -z "$2" ];then
+        echo "##################### "
+        echo "# ERROR: the SHA1 is EMPTY"
+	    echo "##################### "
+	    echo "------------------------------------------------------"
+        display_help
+        exit
+      else
+	    if [ -z "$3" ];then
+           execute_repo_SHA1 $2
+		else
+           execute_repo_SHA1_group $2  $3
+        fi
+      fi		
+	  exit ;;  
+    clomte) git_clone_mtetestcase
+	    exit ;;
+	clotl3|clotrrc) git_clone_tas_rrc
+	    exit ;;
+	clotl2) git_clone_tas_l2
+	    exit ;;
+	clowl3|clowrrc) git_clone_was_rrc
+	    exit ;;
+	clomob) git_clone_mobility
+	    exit ;;
+        closiif) git_clone_eas_si_mgr_if
+	    exit ;;
+	closysinfo) git_clone_eas_sysinfo
+	    exit ;;	
+	revtl3) git_review_tas_l3 $2
+        exit ;;	
+	revtl2) git_push_tas_l2_review $2
+        exit ;;	
+	revmob) git_push_mobility_review $2
+        exit ;;	
+	revsiif) git_push_eas_si_mgr_if_review $2
+        exit ;;
+	revsysinfo) git_push_eas_sysinfo_review $2
+        exit ;;	
+	puhtl3|puhtrrc) 
+	    if [ -z "$2" ];then
+		echo" the branch name is empty"
+		display_help
+		exit 
+	    else
+		if [ -z "$3" ]; then
+		    git_push_tas_rrc $2 
+		    exit
+		else
+		    if [ "$3" = "-r" ]; then
+			 git_push_tas_rrc_review $2
+			 exit
+		    else
+			echo "the paramter is wrong"
+			display_help
+			exit
+		    fi
+		fi
+              fi
+	    exit ;;
+	puhmte) 
+	    if [ -z "$2" ];then
+		echo" the branch name is empty"
+		display_help
+		exit 
+	    else
+		if [ -z "$3" ]; then
+		    git_push_mte_testcase $2 
+		    exit
+		else
+		    if [ "$3" = "-r" ]; then
+			 git_push_mte_testcase_review $2
+			 exit
+		    else
+			echo "the paramter is wrong"
+			display_help
+			exit
+		    fi
+		fi
+              fi
+	    exit ;;	
+	puhtl2) 
+	    if [ -z "$2" ];then
+		echo" the branch name is empty"
+		display_help
+		exit 
+	    else
+		if [ -z "$3" ]; then
+		    git_push_tas_l2 $2 
+		    exit
+		else
+		    if [ "$3" = "-r" ]; then
+			 git_push_tas_l2_review $2
+			 exit
+		    else
+			echo "the paramter is wrong"
+			display_help
+			exit
+		    fi
+		fi
+              fi
+	    exit ;;
+	puhmob) 
+	    if [ -z "$2" ];then
+		echo" the branch name is empty"
+		display_help
+		exit 
+	    else
+		if [ -z "$3" ]; then
+		    git_push_mobility $2 
+		    exit
+		else
+		    if [ "$3" = "-r" ]; then
+			 git_push_mobility_review $2
+			 exit
+		    else
+			echo "the paramter is wrong"
+			display_help
+			exit
+		    fi
+		fi
+              fi
+	    exit ;;	
+    puhsiif) 
+	    if [ -z "$2" ];then
+		echo" the branch name is empty"
+		display_help
+		exit 
+	    else
+		if [ -z "$3" ]; then
+		    git_push_eas_si_mgr_if $2 
+		    exit
+		else
+		    if [ "$3" = "-r" ]; then
+			 git_push_eas_si_mgr_if_review $2
+			 exit
+		    else
+			echo "the paramter is wrong"
+			display_help
+			exit
+		    fi
+		fi
+              fi
+	    exit ;;	 
+    puhsysinfo) 
+	    if [ -z "$2" ];then
+		echo" the branch name is empty"
+		display_help
+		exit 
+	    else
+		if [ -z "$3" ]; then
+		    git_push_eas_sysinfo $2 
+		    exit
+		else
+		    if [ "$3" = "-r" ]; then
+			 git_push_eas_sysinfo_review $2
+			 exit
+		    else
+			echo "the paramter is wrong"
+			display_help
+			exit
+		    fi
+		fi
+              fi
+	    exit ;;		
+	*)
+	    display_help
+	    esac
+            exit ;
+done
+
+display_help 
